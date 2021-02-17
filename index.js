@@ -7,9 +7,9 @@ const privateKey = 'youraccesstokensecret';
 app.use(bodyParser.json());
 
 const authenticateJWT = async (req, res, next) => {
-    const { authorization } = req.headers;
+    const { authorization, public_key } = req.headers;
     if (authorization) {
-        await jwt.verify(authorization, privateKey, (err, user) => {
+        await jwt.verify(authorization, `${privateKey}${public_key}`, (err, user) => {
             if (err)
                 return res.status(403).send({ 'msg': 'UnAuthorized User' })
             else
@@ -21,10 +21,15 @@ const authenticateJWT = async (req, res, next) => {
 };
 
 app.post('/login', async (req, res) => {
-    // Read username and password from request body
-    const { username, password } = req.body;
-    const accessToken = await jwt.sign(req.body, accessTokenSecret);
-    res.status(200).json({ username, accessToken });
+    const { public_key } = req.headers;
+    if (public_key) {
+        // Read username and password from request body
+        const { username, password } = req.body;
+        const accessToken = await jwt.sign(req.body, `${privateKey}${public_key}`);
+        res.status(200).json({ username, accessToken });
+    } else {
+        res.status(403).json({'msg': 'Inavlid Public Key'})
+    }
 });
 
 app.get('/hello', authenticateJWT, async (req, res) => {
