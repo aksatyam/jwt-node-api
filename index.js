@@ -23,7 +23,6 @@ const authenticateJWT = async (req, res, next) => {
 app.post('/login', async (req, res) => {
     const { public_key } = req.headers;
     if (public_key) {
-        // Read username and password from request body
         const { username, password } = req.body;
         const accessToken = await jwt.sign(req.body, `${private_key}${public_key}`);
         res.status(200).json({ username, accessToken });
